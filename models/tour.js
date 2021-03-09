@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const TourSchema = new Schema({
-    guard: {
+    user: {
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
@@ -10,6 +10,7 @@ const TourSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Point'
     }],
+
     date: Date
 });
 

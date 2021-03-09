@@ -7,6 +7,7 @@ var linearAlgebra = require('linear-algebra')(),     // initialise it
     Vector = linearAlgebra.Vector,
     Matrix = linearAlgebra.Matrix;
 
+
 const math = require('mathjs');
 
 const User = require('./models/user');
@@ -33,12 +34,20 @@ db.once('open', () => {
     console.log('Database connected');
 })
 
+
+
+
+
+
+
+
+
+
 // Kalman-Filter
 
 app.get('/kalman-filter', async (req, res) => {
     await User.deleteMany({});
     await Input.deleteMany({});
-    await Measurement.deleteMany({});
 
     const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
     const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
@@ -60,115 +69,83 @@ app.get('/kalman-filter', async (req, res) => {
 })
 
 
+
 async function kalmanFilter(measurement) {
 
-    // We call states or -n- the number of variables needed to discribe our system.
-    // For example, if we need x, y coordinates and speed, n = 3.
-    // We call measurements or -m- the number of variables needed to describe our measurement.
-    // For example, if our measurement is in the form of x, y coordinates and speed, m = 3.
-    // If it was a signle number, m = 1 etc.
-
-    // System State Vectors
-    let xHat;	// (dimensions: n X 1)
-    let xHatNew;	// (dimensions: n X 1)
-
-    // Covariance Matrices
-    let P;	// State Covariance Matrix (dimensions: n X n)
-    let Q;	// Process Noise Covariance Matrix (dimensions: n X n)
-    let R;	// Measurement Noise Covariance Matrix (dimensions: m X m)
-
-    // Transition Matrices
-    let A;	// State Transition Matrix (dimensions: n X n)
-    let H;	// Observation Matrix (dimensions: m X n)
-
-    let K;	// Kalman Gain (dimensions: n X m)
-    let I;	// Identity Matrix (dimensions: n X n)
-
-    // Time variables
-    let t;	// Current time
-    let dt;	// Time step
+    let xHat;
+    let xHatNew; // = new Matrix prwta
+    let P;
+    let Q;
+    let R;
+    let t;
+    let dt;
+    let A;
+    let I;
+    let K;
+    let H;
 
     async function initialize() {
 
-        // Initialize system state with original position and speed.
-        xHat = [[measurement.x], [measurement.y], [measurement.speed]]
+        xHat = math.matrix([[measurement.x], [measurement.y], [measurement.speed]])
+        xHatNew = math.zeros(3, 1);
         t = 0;
-        dt = 1;	// We assume that our time step is constant.
+        dt = 1;
 
-        // For the initialization of Covariance and Transition matrices
-        // we pick the "appropriate values" based on experimentation and
-        // community suggestions.
-
-        // Initialize Covariance Matrices with appropriate values.
-        P = [[0.1, 0.1, 0.1], [0.1, 10000, 10], [0.1, 10, 100]];
+        P = [[0.1, 0.1, 0.1], [0.1, 10000, 10], [0.1, 10, 100]];   // NA ALLAKSOUME TIMES
         Q = [[0.225, 0.45, 0], [0.45, 0.9, 0], [0, 0, 0]];
-        R = [[15, 0, 0], [0, 15, 0], [0, 0, 15]];
-
-        // Initialize Transition Matrices with appropriate values.
+        //R = [[15]];
+        R = math.identity(3);
+        //H = [[1, 0, 0]];
+        H = math.identity(3);
         A = [[1, dt, 0], [0, 1, dt], [0, 0, 1]];
-        H = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-
         I = math.identity(3);
+        K = math.identity(3);
         measurement.isFirst = false;
+
     }
 
     async function update(z) {
-
         // Time-update
+        xHatNew = math.multiply(A, xHat);
+        P = math.add(math.multiply(math.multiply(A, P), math.transpose(A)), Q);
 
-        xHatNew = math.multiply(A, xHat);	// x(t) = A * x(t-1)
-
-        // For the equation P(t) = A * P(t-1) * A.transpose + Q
-        // Calculate factor A * P(t-1)
-        let AP = math.multiply(A, P);
-        // Calculate factor A * P(t-1) * A.transpose
-        let APAT = math.multiply(AP, math.transpose(A));
-        // Finally, assemble P
-        P = math.add(APAT, Q);
+        console.log('xHatNew=', xHatNew);
+        console.log('P=', P);
 
         // Measurement-update
+        // let factor1 = P.dot(math.inv(H))
+        // let factor2 = (H.dot(P)).dot(math.inv(H))
+        // K = factor1.dot(math.inv(factor2.plus(R)));
 
-        // For the equation K = P * H.transpose * (H * P * H.transpose + R).inverse
-        // Calculate factor P * H.transpose
-        let PHT = math.multiply(P, math.transpose(H));
-        // Calculate factor H * P * H.transpose
-        let HPHT = math.multiply(H, PHT);
-        // Calculate factor (H * P * H.transpose + R)
-        let plusR = math.add(HPHT, R);
-        // Calculate (H * P * H.transpose + R).inverse
-        let inversePlusR = math.inv(plusR);
-        // Finally, assemble K
-        K = math.multiply(PHT, inversePlusR);
+        // K = (P.dot(H.trans())).dot(math.inv(((H.dot(P)).dot(H.trans())).plus(R)));
 
-        // Debug
-        console.log("In function update(), Kalman Gain = ", K);
+        // let PHT = math.multiply(P, math.transpose(H));
+        // let HPHT = math.multiply(H, PHT);
+        // let plusR = math.add(HPHT, R);
+        // let inversePlusR = math.inv(plusR);
 
-        // For the equation x(t) = x(t) + K * (z(t) - H*x(t))
-        // Calculate factor H * x(t)
-        let Hx = math.multiply(H, xHatNew);
-        // Calculate factor z(t) - H*x(t)
-        let zMinusHx = math.subtract(z, Hx);
-        // Calculate factor K * (z(t) - H*x(t))
-        let KzMinusHx = math.multiply(K, zMinusHx);
-        // Finally, assemble xHatNew
-        xHatNew = math.add(xHatNew, KzMinusHx);
+        // K me H
+        // K = math.multiply(PHT, inversePlusR);
 
-        // Debug
-        console.log("In function update(), xHatNew = ", xHatNew);
+        // K xwris H
+        // K = math.multiply(P, math.inv(math.add(P, R)));
 
-        // For the equation P = (I - K * H) * P
-        // Calculate factor K * H
-        let KH = math.multiply(K, H);
-        // Calculate factor (I - K * H)
-        let IMinusKH = math.subtract(I, KH);
-        // Finally, assemble P
-        P = math.multiply(IMinusKH, P);
+        //XWRIS H
 
-        // Debug
-        console.log("In function update(), P = ", P);
+        xHatNew = math.add(xHatNew, math.multiply(K, math.subtract(z, xHatNew)));
 
-        // Initialize next iteration.
+        P = math.multiply(math.subtract(I, K), P);
+
+        // ME H
+
+        // xHatNew = math.add(xHatNew, math.multiply(K, math.subtract(z, math.multiply(H, xHatNew))));
+
+        // P = math.multiply(math.subtract(I, math.multiply(K, H)), P);
+
+        // Initialize next iteration
+        console.log(`xHat = ${xHat}, xHatNew = ${xHatNew}`)
         xHat = xHatNew;
+        console.log(`xHat = ${xHat}, xHatNew = ${xHatNew}`)
         t = t + dt;
     }
 
@@ -177,8 +154,20 @@ async function kalmanFilter(measurement) {
     let z = [[measurement.x], [measurement.y], [measurement.speed]];
     await update(z);
 
-    return [xHat];
+    return xHat;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.get('/', async (req, res) => {
     await User.deleteMany({});
@@ -220,11 +209,15 @@ app.get('/', async (req, res) => {
     const users = await User.find()
     const tours = await Tour.find();
     res.render('tours', { users, tours });
+
 });
+
+
 
 app.get('/home', (req, res) => {
     res.render('home');
 });
+
 
 const port = 3000;
 
