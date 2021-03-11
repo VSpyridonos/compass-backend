@@ -11,8 +11,18 @@
 <body>
     <h1>Αποτελέσματα Kalman-Filter</h1>
     <div id="results">
-        <h2>xHat = <%= results %>
+        <h2>Original coordinates: <%= results[0].xHatOriginal %>
         </h2>
+        <% for (let res of results) { %>
+            <h2>Measurement <%= results.indexOf(res) + 1 %>
+            </h2>
+            <h3>xHatOriginal = <%= res.xHatOriginal %>
+            </h3>
+            <h3>xHat = <%= res.xHat %>
+            </h3>
+            <h3>xHatNew = <%= res.xHatNew %>
+            </h3>
+            <% } %>
     </div>
 
 </body>

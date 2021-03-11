@@ -48,13 +48,62 @@ app.get('/kalman-filter', async (req, res) => {
     await user2.save();
     await user3.save();
 
-    const measurement1 = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true });
 
-    await measurement1.save();
+    // Make it unique for each user
+    let measurementCounter = 0;
+    let measurement;
 
-    const results = await kalmanFilter(measurement1);
-    console.log(results);
+    // ************** RabbitMQ communication cycle ******************
+    let user;
+    while (measurementCounter < 2) {
 
+
+        // Receive measurement from mobile app and create measurement object using the received values, increment measurementCounter
+
+        if (measurementCounter === 0) {
+            measurement = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true, dt: 1 });
+            measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
+            measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
+
+
+            // Find current user (not needed after authentication) and access their measurement's details
+            user = await User.findById(user1.id).populate({
+                path: 'measurements',
+                populate: {
+                    path: 'measurement'
+                }
+            });
+            // Add this measurement to user's measurements
+            await kalmanFilter(measurement);
+            user.measurements.push(measurement);
+            user.save();
+
+        }
+        // If measurement is not the first one, xHatOriginal = previous measurement's xHatNew
+        else {
+
+            measurement = new Measurement({ user: user.id, x: 51.126, y: 25.167, speed: 4.4, isFirst: false, dt: 2 });
+            measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
+            measurement.xHat = user.measurements[measurementCounter - 1].xHatNew;
+
+            await kalmanFilter(measurement);
+            // Add this measurement to user's measurements
+            user.measurements.push(measurement);
+            user.save();
+        }
+        measurementCounter++;
+        await measurement.save();
+
+
+        // Call kalman-filter with measurement
+
+    }
+
+
+    // **************************************************************
+
+    // Find all measurements
+    const results = await Measurement.find({});
 
     res.render('kalman-filter', { results });
 })
@@ -88,35 +137,30 @@ async function kalmanFilter(measurement) {
     let t;	// Current time
     let dt;	// Time step
 
-    async function initialize() {
+    // All measurements need to access arrays' values
+    t = 0;
+    dt = 1;	// We assume that our time step is constant.
 
-        // Initialize system state with original position and speed.
-        xHat = [[measurement.x], [measurement.y], [measurement.speed]]
-        t = 0;
-        dt = 1;	// We assume that our time step is constant.
+    // For the initialization of Covariance and Transition matrices
+    // we pick the "appropriate values" based on experimentation and
+    // community suggestions.
 
-        // For the initialization of Covariance and Transition matrices
-        // we pick the "appropriate values" based on experimentation and
-        // community suggestions.
+    // Initialize Covariance Matrices with appropriate values.
+    P = [[0.1, 0.1, 0.1], [0.1, 10000, 10], [0.1, 10, 100]];
+    Q = [[0.225, 0.45, 0], [0.45, 0.9, 0], [0, 0, 0]];
+    R = [[15, 0, 0], [0, 15, 0], [0, 0, 15]];
 
-        // Initialize Covariance Matrices with appropriate values.
-        P = [[0.1, 0.1, 0.1], [0.1, 10000, 10], [0.1, 10, 100]];
-        Q = [[0.225, 0.45, 0], [0.45, 0.9, 0], [0, 0, 0]];
-        R = [[15, 0, 0], [0, 15, 0], [0, 0, 15]];
+    // Initialize Transition Matrices with appropriate values.
+    A = [[1, dt, 0], [0, 1, dt], [0, 0, 1]];
+    H = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
 
-        // Initialize Transition Matrices with appropriate values.
-        A = [[1, dt, 0], [0, 1, dt], [0, 0, 1]];
-        H = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-
-        I = math.identity(3);
-        measurement.isFirst = false;
-    }
+    I = math.identity(3);
 
     async function update(z) {
 
         // Time-update
 
-        xHatNew = math.multiply(A, xHat);	// x(t) = A * x(t-1)
+        measurement.xHatNew = math.multiply(A, measurement.xHat);	// x(t) = A * x(t-1)
 
         // For the equation P(t) = A * P(t-1) * A.transpose + Q
         // Calculate factor A * P(t-1)
@@ -145,13 +189,13 @@ async function kalmanFilter(measurement) {
 
         // For the equation x(t) = x(t) + K * (z(t) - H*x(t))
         // Calculate factor H * x(t)
-        let Hx = math.multiply(H, xHatNew);
+        let Hx = math.multiply(H, measurement.xHatNew);
         // Calculate factor z(t) - H*x(t)
         let zMinusHx = math.subtract(z, Hx);
         // Calculate factor K * (z(t) - H*x(t))
         let KzMinusHx = math.multiply(K, zMinusHx);
         // Finally, assemble xHatNew
-        xHatNew = math.add(xHatNew, KzMinusHx);
+        measurement.xHatNew = math.add(measurement.xHatNew, KzMinusHx);
 
         // Debug
         console.log("In function update(), xHatNew = ", xHatNew);
@@ -167,17 +211,12 @@ async function kalmanFilter(measurement) {
         // Debug
         console.log("In function update(), P = ", P);
 
-        // Initialize next iteration.
-        xHat = xHatNew;
-        t = t + dt;
     }
 
-    if (measurement.isFirst) await initialize();
+    // Call update
+    await update(measurement.xHatOriginal);
 
-    let z = [[measurement.x], [measurement.y], [measurement.speed]];
-    await update(z);
-
-    return [xHat];
+    return
 }
 
 app.get('/', async (req, res) => {
