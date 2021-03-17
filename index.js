@@ -56,7 +56,13 @@ app.get('/rabbitmq', async (req, res) => {
             console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
 
             channel.consume(queue, function (msg) {
-                console.log(" [x] Received %s", msg.content.toString());
+                let msgToJSON = JSON.parse(msg.content)
+                // console.log(" [x] Received %s", msg.content.toString());
+                console.log(" [x] Received %s", msgToJSON);
+                console.log("\n [x] User ID: %s", msgToJSON.userID);
+                console.log("\n [x] x coordinate: %s", msgToJSON.x);
+                console.log("\n [x] y coordinate: %s", msgToJSON.y);
+                console.log("\n [x] Speed: %s", msgToJSON.speed);
             }, {
                 noAck: true
             });
