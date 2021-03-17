@@ -33,8 +33,40 @@ db.once('open', () => {
     console.log('Database connected');
 })
 
-// Kalman-Filter
+// Consumer
+app.get('/rabbitmq', async (req, res) => {
 
+    var amqp = require('amqplib/callback_api');
+
+    amqp.connect('amqp://guest:guest@localhost:5672/', function (error0, connection) {
+        if (error0) {
+            throw error0;
+        }
+        connection.createChannel(function (error1, channel) {
+            if (error1) {
+                throw error1;
+            }
+
+            var queue = 'hello';
+
+            channel.assertQueue(queue, {
+                durable: false
+            });
+
+            console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
+
+            channel.consume(queue, function (msg) {
+                console.log(" [x] Received %s", msg.content.toString());
+            }, {
+                noAck: true
+            });
+        });
+    });
+
+    res.render('rabbit');
+})
+
+// Kalman-Filter
 app.get('/kalman-filter', async (req, res) => {
     await User.deleteMany({});
     await Input.deleteMany({});
