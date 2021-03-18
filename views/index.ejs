@@ -1,24 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Items</title>
+    <title>Simple Map</title>
+    <link rel="stylesheet" href="stylesheets/index.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+
+    <script>
+        let map;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 39.6655, lng: 20.8559 },
+                zoom: 12,
+            });
+        }
+    </script>
 </head>
 
 <body>
-    <h1>All Items</h1>
+    <h1>All Tours</h1>
+    <div id="map"></div>
 
-    <ul>
-        <% for (let item of items) { %>
-            <li>
-                <%= item.title %>, <%= item.coordinates %>
-            </li>
-            <% } %>
-    </ul>
+    <div id="user-info">
+        <% for (let user of users) { %>
+            <h2>
+                User: <%= user.username%>
+            </h2>
+            <% if (user.measurements) { %>
+                <h3>
+                    Last Tour:
+                </h3>
+                <% for (let measurement of user.measurements) { %>
 
+                    <h4>Measurement <%= user.measurements.indexOf(measurement) + 1 %>:</h4>
+                    <h5>
+                        X: <%= measurement.xHatNew[0] %>
+                    </h5>
+
+                    <h5>
+                        Y: <%= measurement.xHatNew[1] %>
+                    </h5>
+
+                    <% } %>
+                        <% } %>
+                            <br>
+                            <hr>
+                            <% } %>
+
+
+    </div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=<%= googleMapsKey %>&callback=initMap&libraries=&v=weekly"
+        async></script>
 </body>
 
 </html>

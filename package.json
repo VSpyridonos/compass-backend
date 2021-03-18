@@ -13,7 +13,9 @@
   "dependencies": {
     "amqplib": "^0.7.1",
     "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
     "ejs": "^3.1.6",
+    "ejs-mate": "^3.0.0",
     "express": "^4.17.1",
     "linear-algebra": "^3.1.4",
     "mathjs": "^9.2.0",

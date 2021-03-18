@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const ejsMate = require('ejs-mate');
 const amqp = require('amqplib');
 const matrixMultiplication = require('matrix-multiplication');
 let mul = matrixMultiplication()(2);
@@ -16,12 +17,21 @@ const Tour = require('./models/tour');
 const Point = require('./models/point');
 const Measurement = require('./models/measurement');
 
+
+require('dotenv').config();
+
+const googleMapsKey = process.env.GOOGLE_MAPS_API_KEY;
+
 const app = express();
 
+app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 mongoose.connect('mongodb://localhost:27017/dockerApp', {
     useNewUrlParser: true,
@@ -35,23 +45,23 @@ db.once('open', () => {
 })
 
 // Consumer
-async function connectRabbit(){
-    try{
+async function connectRabbit() {
+    try {
         const connection = await amqp.connect("amqp://localhost:5672");
         const channel = await connection.createChannel();
         var queue = "kalman"
-        const function_queue = await channel.assertQueue(queue, {durable: false});
+        const function_queue = await channel.assertQueue(queue, { durable: false });
 
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
 
         channel.consume(queue, function (message) {
-                const input = JSON.parse(message.content.toString());
-                console.log("Received %s", message.content.toString());
-                return input;
+            const input = JSON.parse(message.content.toString());
+            console.log("Received %s", message.content.toString());
+            return input;
 
-            }, {noAck: true});
+        }, { noAck: true });
     }
-    catch(ex){
+    catch (ex) {
         console.log(ex);
     }
 }
@@ -94,9 +104,9 @@ app.get('/kalman-filter', async (req, res) => {
 
         if (measurementCounter === 0) {
             //measurement = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true, dt: 1 });
-            
+
             //input is in JSON format probably, so the values we want are stored in this way.
-            measurement = new Measurement({user: input[user][id], x: input[xpos], y: input[ypos], speed: input[speed]});
+            measurement = new Measurement({ user: input[user][id], x: input[xpos], y: input[ypos], speed: input[speed] });
             measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
             measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
 
@@ -254,7 +264,23 @@ async function kalmanFilter(measurement) {
     return
 }
 
+app.get('/home', (req, res) => {
+    res.render('home');
+});
+
 app.get('/', async (req, res) => {
+
+    const users = await User.find({}).populate({
+        path: 'measurements',
+        populate: {
+            path: 'measurement'
+        }
+    });
+
+    res.render('index', { users, googleMapsKey })
+})
+
+app.get('/tours', async (req, res) => {
     await User.deleteMany({});
     await Point.deleteMany({});
     await Tour.deleteMany({});
@@ -304,9 +330,7 @@ app.get('/', async (req, res) => {
     res.render('tours', { users, tours });
 });
 
-app.get('/home', (req, res) => {
-    res.render('home');
-});
+
 
 const port = 3000;
 
