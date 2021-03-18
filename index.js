@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const amqp = require('amqplib');
 const matrixMultiplication = require('matrix-multiplication');
 let mul = matrixMultiplication()(2);
 var linearAlgebra = require('linear-algebra')(),     // initialise it
@@ -34,43 +35,27 @@ db.once('open', () => {
 })
 
 // Consumer
-app.get('/rabbitmq', async (req, res) => {
+async function connectRabbit(){
+    try{
+        const connection = await amqp.connect("amqp://localhost:5672");
+        const channel = await connection.createChannel();
+        var queue = "kalman"
+        const function_queue = await channel.assertQueue(queue, {durable: false});
 
-    var amqp = require('amqplib/callback_api');
+        console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
 
-    amqp.connect('amqp://guest:guest@localhost:5672/', function (error0, connection) {
-        if (error0) {
-            throw error0;
-        }
-        connection.createChannel(function (error1, channel) {
-            if (error1) {
-                throw error1;
-            }
+        channel.consume(queue, function (message) {
+                const input = JSON.parse(message.content.toString());
+                console.log("Received %s", message.content.toString());
+                return input;
 
-            var queue = 'hello';
+            }, {noAck: true});
+    }
+    catch(ex){
+        console.log(ex);
+    }
+}
 
-            channel.assertQueue(queue, {
-                durable: false
-            });
-
-            console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-
-            channel.consume(queue, function (msg) {
-                let msgToJSON = JSON.parse(msg.content)
-                // console.log(" [x] Received %s", msg.content.toString());
-                console.log(" [x] Received %s", msgToJSON);
-                console.log("\n [x] User ID: %s", msgToJSON.userID);
-                console.log("\n [x] x coordinate: %s", msgToJSON.x);
-                console.log("\n [x] y coordinate: %s", msgToJSON.y);
-                console.log("\n [x] Speed: %s", msgToJSON.speed);
-            }, {
-                noAck: true
-            });
-        });
-    });
-
-    res.render('rabbit');
-})
 
 // Kalman-Filter
 app.get('/kalman-filter', async (req, res) => {
@@ -81,15 +66,24 @@ app.get('/kalman-filter', async (req, res) => {
     const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
     const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
     const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com' });
+    const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com' });
+    const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com' });
+    const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com' });
+    const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com' });
 
     await user1.save();
     await user2.save();
     await user3.save();
+    await user4.save();
+    await user5.save();
+    await user6.save();
+    await user7.save();
 
 
     // Make it unique for each user
     let measurementCounter = 0;
     let measurement;
+    var input = connectRabbit();
 
     // ************** RabbitMQ communication cycle ******************
     let user;
@@ -99,7 +93,10 @@ app.get('/kalman-filter', async (req, res) => {
         // Receive measurement from mobile app and create measurement object using the received values, increment measurementCounter
 
         if (measurementCounter === 0) {
-            measurement = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true, dt: 1 });
+            //measurement = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true, dt: 1 });
+            
+            //input is in JSON format probably, so the values we want are stored in this way.
+            measurement = new Measurement({user: input[user][id], x: input[xpos], y: input[ypos], speed: input[speed]});
             measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
             measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
 
@@ -265,6 +262,10 @@ app.get('/', async (req, res) => {
     const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
     const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
     const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com' });
+    const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com' });
+    const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com' });
+    const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com' });
+    const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com' });
 
     const point1 = new Point({ user: user1.id, geometry: { type: 'Point', coordinates: [51.092358, 40.612349] } });
     const point2 = new Point({ user: user2.id, geometry: { type: 'Point', coordinates: [63.123551, 23.613236] } });
@@ -293,6 +294,10 @@ app.get('/', async (req, res) => {
     await user1.save();
     await user2.save();
     await user3.save();
+    await user4.save();
+    await user5.save();
+    await user6.save();
+    await user7.save();
 
     const users = await User.find()
     const tours = await Tour.find();

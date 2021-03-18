@@ -1,0 +1,11 @@
+{
+  "name": "rabbit",
+  "version": "1.0.0",
+  "main": "mobile-producer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
