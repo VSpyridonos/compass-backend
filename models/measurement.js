@@ -12,7 +12,9 @@ const MeasurementSchema = new Schema({
     isFirst: Boolean,
     xHatOriginal: [[Number]],
     xHat: [[Number]],
-    xHatNew: [[Number]]
+    xHatNew: [[Number]],
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Measurement', MeasurementSchema);
