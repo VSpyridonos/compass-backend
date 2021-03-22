@@ -23,36 +23,34 @@
 
 <body>
 
+    <nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block sidebar collapse">
+        <div class="position-sticky">
+            <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 text-muted">
+                <span>USERS</span>
+            </h5>
+            <hr>
 
-    <div class="container-flex">
+            <ul class="nav flex-column">
+                <% for (let user of users) { %>
 
-        <nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block sidebar collapse">
-            <div class="position-sticky">
-                <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 text-muted">
-                    <span>USERS</span>
-                </h5>
-                <hr>
+                    <li class="nav-item mb-1 px-3">
+                        <a id="<%= user.id %>" href="#" class="username-link nounderline ml-3" data-toggle="dropdown"
+                            aria-expanded="false" onclick="return displayTours(this.id);">
+                            <%= user.username %>
+                        </a>
+                    </li>
 
-                <ul class="nav flex-column">
-                    <% for (let user of users) { %>
+                    <% } %>
 
-                        <li class="nav-item mb-1 px-3">
-                            <a href="#" class="nounderline ml-3" data-toggle="dropdown" aria-expanded="false">
-                                <%= user.username %>
-                            </a>
-                        </li>
-
-                        <% } %>
-
-                </ul>
+            </ul>
 
 
 
-            </div>
-        </nav>
-    </div>
+        </div>
+    </nav>
 
-    <div class="container-flex ">
+    <div class="wrapper flex-column">
+
         <h1>All Tours</h1>
         <div id="map"></div>
 
@@ -107,8 +105,6 @@
 
     <script>
 
-
-
             function initMap() {
                 let map;
                 map = new google.maps.Map(document.getElementById("map"), {
@@ -128,9 +124,37 @@
 
                 marker.setMap(map);
 
-                for (let user of allUsers) {
+                // for (let user of allUsers) {
 
+                //     if (user.measurements) {
+                //         for (let measurement of user.measurements) {
+
+                //             var marker = new google.maps.Marker({
+                //                 position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
+                //                 title: `measurement.createdAt`
+                //             });
+
+                //             google.maps.event.addListener(marker, 'click', function () {
+                //                 infoWindow.setContent(this.get('title'));
+                //                 infoWindow.open(map, this);
+                //             });
+
+                //             marker.setMap(map);
+                //         }
+                //     }
+                // }
+            }
+
+        function displayTours(id) {
+            for (let user of allUsers) {
+                //console.log(user._id)
+                //console.log(id)
+                if (user._id == id) {
                     if (user.measurements) {
+                        map = new google.maps.Map(document.getElementById("map"), {
+                            center: { lat: 39.6655, lng: 20.8559 },
+                            zoom: 12
+                        });
                         for (let measurement of user.measurements) {
 
                             var marker = new google.maps.Marker({
@@ -148,6 +172,16 @@
                     }
                 }
             }
+        }
+
+
+    </script>
+
+    <script>
+        // function addListeners() {
+        //     document.getElementByClassName("username-link").addEventListener("click", displayTour);
+        //     document.getElementById("6053568b8061bddfc12de37b").addEventListener("click", displayTour);
+        // }
 
 
     </script>
