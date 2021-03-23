@@ -19,69 +19,64 @@
 
     <!-- Custom styles for this template -->
     <link href="stylesheets/sidebar.css" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 </head>
 
 <body>
 
-    <nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block sidebar collapse">
+    <nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block sidebar">
         <div class="position-sticky">
-            <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 text-muted">
-                <span>USERS</span>
-            </h5>
-            <hr>
 
-            <ul class="nav flex-column">
-                <% for (let user of users) { %>
+            <h3 id="sidebar-main-header" class="d-flex align-items-center px-3 pb-3">
+                <a id="header-link" class="nounderline" href="/"><span><i class="fa fa-compass"></i> Compass</span></a>
+            </h3>
 
-                    <li class="nav-item mb-1 px-3">
-                        <a id="<%= user.id %>" href="#" class="username-link nounderline ml-3" data-toggle="dropdown"
-                            aria-expanded="false" onclick="return displayTours(this.id);">
-                            <%= user.username %>
-                        </a>
-                    </li>
 
-                    <% } %>
+            <div class="card">
+                <div class="card-body align-items-center">
+                    <h5 class="d-flex justify-content-between align-items-center px-5">
+                        <span>User List</span>
+                        <hr>
+                    </h5>
 
-            </ul>
+
+
+                    <ul class="nav flex-column">
+                        <% for (let user of users) { %>
+                            <a id="<%= user.id %>" href="#" class="username-link nounderline ml-3"
+                                data-toggle="dropdown" aria-expanded="false" onclick="return displayTours(this.id);">
+                                <div class="card user-card">
+                                    <div class="card-body user-card-body">
+                                        <li class=" nav-item mb-1">
+
+                                            <%= user.username %>
+
+                                        </li>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <% } %>
+                </div>
+                </ul>
+            </div>
 
 
 
         </div>
     </nav>
 
-    <div class="wrapper flex-column">
+    <div class="wrapper flex-column mt-5">
 
-        <h1>All Tours</h1>
-        <div id="map"></div>
-
-        <div id="user-info">
-            <% for (let user of users) { %>
-                <h2>
-                    User: <%= user.username%>
-                </h2>
-                <% if (user.measurements) { %>
-                    <h3>
-                        Last Tour:
-                    </h3>
-                    <% for (let measurement of user.measurements) { %>
-
-                        <h4>Measurement <%= user.measurements.indexOf(measurement) + 1 %>:</h4>
-                        <h5>
-                            X: <%= measurement.xHatNew[0] %>
-                        </h5>
-
-                        <h5>
-                            Y: <%= measurement.xHatNew[1] %>
-                        </h5>
-
-                        <% } %>
-                            <% } %>
-                                <br>
-                                <hr>
-                                <% } %>
-
-
+        <div id="map-box">
+            <div id="map"></div>
         </div>
+
+        <div id="user-info" class="mt-4">
+            Select a user from the list to display tour info.
+        </div>
+
+
     </div>
 
     <script>
@@ -108,58 +103,30 @@
             function initMap() {
                 let map;
                 map = new google.maps.Map(document.getElementById("map"), {
-                    center: { lat: 39.6655, lng: 20.8559 },
-                    zoom: 12
+                    center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                    zoom: 18
                 });
 
-                var marker = new google.maps.Marker({
-                    position: { lat: 39.669213148512505, lng: 20.8517165405187 },
-                    title: `measurement.createdAt`
-                });
-
-                google.maps.event.addListener(marker, 'click', function () {
-                    infoWindow.setContent(this.get('title'));
-                    infoWindow.open(map, this);
-                });
-
-                marker.setMap(map);
-
-                // for (let user of allUsers) {
-
-                //     if (user.measurements) {
-                //         for (let measurement of user.measurements) {
-
-                //             var marker = new google.maps.Marker({
-                //                 position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
-                //                 title: `measurement.createdAt`
-                //             });
-
-                //             google.maps.event.addListener(marker, 'click', function () {
-                //                 infoWindow.setContent(this.get('title'));
-                //                 infoWindow.open(map, this);
-                //             });
-
-                //             marker.setMap(map);
-                //         }
-                //     }
-                // }
             }
 
         function displayTours(id) {
             for (let user of allUsers) {
-                //console.log(user._id)
-                //console.log(id)
+
                 if (user._id == id) {
                     if (user.measurements) {
-                        map = new google.maps.Map(document.getElementById("map"), {
-                            center: { lat: 39.6655, lng: 20.8559 },
-                            zoom: 12
+                        let map = new google.maps.Map(document.getElementById("map"), {
+                            center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                            zoom: 18
                         });
                         for (let measurement of user.measurements) {
 
+                            let date = measurement.createdAt.slice(0, 10);
+                            let time = measurement.createdAt.slice(11, 19);
+
                             var marker = new google.maps.Marker({
                                 position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
-                                title: `measurement.createdAt`
+                                map,
+                                title: `${user.username}'s position on:\n${date}, ${time}`
                             });
 
                             google.maps.event.addListener(marker, 'click', function () {
@@ -167,21 +134,15 @@
                                 infoWindow.open(map, this);
                             });
 
-                            marker.setMap(map);
                         }
                     }
+                    document.getElementById('user-info').innerHTML = `Currently showing tour info for user: ${user.username}`
+                    let userCards = document.getElementsByClassName('user-card');
+                    for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
+                    document.getElementById(id).children[0].style.backgroundColor = "rgb(255, 181, 112)";
                 }
             }
         }
-
-
-    </script>
-
-    <script>
-        // function addListeners() {
-        //     document.getElementByClassName("username-link").addEventListener("click", displayTour);
-        //     document.getElementById("6053568b8061bddfc12de37b").addEventListener("click", displayTour);
-        // }
 
 
     </script>

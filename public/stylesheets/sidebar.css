@@ -13,6 +13,31 @@ body {
   width: 100%;
   font-size: .875rem;
   overflow: scroll;
+  /* background-color: rgb(243, 178, 118); */
+}
+
+#header-link {
+  color:rgb(245, 130, 23)
+}
+
+#sidebar-main-header {
+  color:rgb(245, 130, 23)
+}
+
+
+.card {
+  background-color: #e3fdfd;
+}
+
+.user-card {
+  width: inherit;
+}
+.user-card-body {
+  text-align: center;
+}
+
+.user-card:hover {
+  background-color:rgb(255, 181, 112);
 }
 
 .wrapper {
@@ -20,9 +45,18 @@ body {
   align-items: stretch;
 }
 
+#map-box {
+  border:10px solid rgb(179, 141, 189);
+}
+
+#user-info {
+  font-size: 1.2rem;
+}
+
 #map {
   width: 100%;
   height: 700px;
+  
 }
 
 .feather {
@@ -85,9 +119,8 @@ body {
   color: #007bff;
 }
 
-.sidebar a:hover {
+.username-link {
   color: #007bff;
-  background-color: rgb(158, 149, 138);
 }
 
 .sidebar .nav-link:hover .feather,
