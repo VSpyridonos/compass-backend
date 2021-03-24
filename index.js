@@ -277,7 +277,7 @@ app.get('/', async (req, res) => {
         }
     });
 
-    res.render('sidebar', { users, googleMapsKey })
+    res.render('index', { users, googleMapsKey })
 })
 
 app.get('/tours', async (req, res) => {

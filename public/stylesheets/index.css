@@ -1,110 +1,195 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+  vertical-align: baseline;
+  background: transparent;
+}
+
+.nounderline {
+  text-decoration: none !important;
+}
+
+html {
+width: 100%;
+background-size: contain;
+}
+
+
+
 body {
-    max-width: 900px;
-    margin: auto;
+  font-size: .875rem;
+  overflow: scroll;
+}
+
+#header-link {
+  color:rgb(245, 130, 23)
+}
+
+#sidebar-main-header {
+  font-size: 2.2rem;
+  color:rgb(245, 130, 23)
+}
+
+
+.card {
+  background-color: #e3fdfd;
+}
+
+.user-card {
+  width: inherit;
+}
+.user-card-body {
+  text-align: center;
+}
+
+.user-card:hover {
+  background-color:rgb(255, 181, 112);
+}
+
+
+#map-box {
+  margin-top: 3rem;
+  margin-left: 10rem;
+  border:10px solid rgb(179, 141, 189);
+}
+
+#user-info {
+  margin-left: 10rem;
+  font-size: 1.2rem;
 }
 
 #map {
-    width: 900px;
-    height: 700px;
+  width: 100%;
+  height: 700px;
+  
 }
 
-h1 {
-    text-align: center;
+.feather {
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
 }
 
-body {
-    font-size: .875rem;
+/*
+ * Sidebar
+ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1; /* Behind the navbar */
+  padding: 45px 0 0; /* Height of navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+  background-color: #bff5f5;
+  font-size: 0.9vw;
+  overflow-y: scroll;
+  overflow: -moz-scrollbars-none;
+  /* this will hide the scrollbar in internet explorers */
+  -ms-overflow-style: none;
+}
+
+/* this will hide the scrollbar in webkit based browsers - safari, chrome, etc */
+.sidebar::-webkit-scrollbar { 
+  width: 0 !important;
+  display: none; 
+}
+
+
+
+.sidebar-heading {
+  font-size: 1.5rem;
+}
+
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 48px);
+  padding-top: .5rem;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #333;
+}
+
+.sidebar .nav-link .feather {
+  margin-right: 4px;
+  color: #727272;
+}
+
+.sidebar .nav-link.active {
+  color: #007bff;
+}
+
+.username-link {
+  color: #007bff;
+}
+
+.sidebar .nav-link:hover .feather,
+.sidebar .nav-link.active .feather {
+  color: inherit;
+}
+
+
+@media only screen and (max-width: 768px) {
+
+  #map-box {
+    border: none;
+    bottom: 0px;
+    float: left;
+    margin: 0;
   }
-  
-  .feather {
-    width: 16px;
-    height: 16px;
-    vertical-align: text-bottom;
+
+  #sidebar-main-header {
+    align-items: center;
+    justify-content: center;
   }
-  
-  /*
-   * Sidebar
-   */
-  
+
+  #header-link {
+    font-size: 2rem;
+  }
+
+  #map {
+    margin-left: 0px;
+    padding-left: 0px;
+    float: left;
+    width: 100vw;
+  }
+
+  #user-info {
+    display: none;
+  }
+
   .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 100; /* Behind the navbar */
-    padding: 48px 0 0; /* Height of navbar */
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    margin-top: 0px;
+    padding-top: 0px;
+    top: 0px;
+    position: static;
+    float: left;
+    width: 100vw;
+    
   }
-  
-  @media (max-width: 767.98px) {
-    .sidebar {
-      top: 5rem;
-    }
+
+  .nav-item {
+    font-size: 1.3rem;
   }
-  
-  .sidebar-sticky {
-    position: relative;
-    top: 0;
-    height: calc(100vh - 48px);
-    padding-top: .5rem;
-    overflow-x: hidden;
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-  }
-  
-  .sidebar .nav-link {
-    font-weight: 500;
-    color: #333;
-  }
-  
-  .sidebar .nav-link .feather {
-    margin-right: 4px;
-    color: #727272;
-  }
-  
-  .sidebar .nav-link.active {
-    color: #007bff;
-  }
-  
-  .sidebar .nav-link:hover .feather,
-  .sidebar .nav-link.active .feather {
-    color: inherit;
-  }
-  
-  .sidebar-heading {
-    font-size: .75rem;
-    text-transform: uppercase;
-  }
-  
-  /*
-   * Navbar
-   */
-  
-  .navbar-brand {
-    padding-top: .75rem;
-    padding-bottom: .75rem;
-    font-size: 1rem;
-    background-color: rgba(0, 0, 0, .25);
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
-  }
-  
-  .navbar .navbar-toggler {
-    top: .25rem;
-    right: 1rem;
-  }
-  
-  .navbar .form-control {
-    padding: .75rem 1rem;
-    border-width: 0;
-    border-radius: 0;
-  }
-  
-  .form-control-dark {
-    color: #fff;
-    background-color: rgba(255, 255, 255, .1);
-    border-color: rgba(255, 255, 255, .1);
-  }
-  
-  .form-control-dark:focus {
-    border-color: transparent;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
-  }
+
+}
+
+
+
+
+/* debugging scrollable pages */
+/* * {
+  background: #000 !important;
+  color: #0f0 !important;
+  outline: solid #f00 1px !important;
+} */

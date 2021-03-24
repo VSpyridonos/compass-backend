@@ -1,154 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Simple Map</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Compass</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
-    <link rel="stylesheet" href="stylesheets/index.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
         crossorigin="anonymous"></script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
 
-    <script>
-        let map;
 
-        function initMap() {
-            map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 39.6655, lng: 20.8559 },
-                zoom: 12,
-            });
-        }
-    </script>
+    <link href="stylesheets/secondary.css" rel="stylesheet">
+    <link href="stylesheets/index.css" rel="stylesheet">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 </head>
 
 <body>
-    <div>
-        <h1>All Tours</h1>
-        <div id="map"></div>
 
-        <div id="user-info">
-            <% for (let user of users) { %>
-                <h2>
-                    User: <%= user.username%>
-                </h2>
-                <% if (user.measurements) { %>
-                    <h3>
-                        Last Tour:
-                    </h3>
-                    <% for (let measurement of user.measurements) { %>
 
-                        <h4>Measurement <%= user.measurements.indexOf(measurement) + 1 %>:</h4>
-                        <h5>
-                            X: <%= measurement.xHatNew[0] %>
-                        </h5>
 
-                        <h5>
-                            Y: <%= measurement.xHatNew[1] %>
-                        </h5>
+    <nav id="sidebarMenu" class="col-md-2 col-lg-2 d-md-block sidebar">
+        <div class="position-sticky">
 
-                        <% } %>
+            <h3 id="sidebar-main-header" class="d-flex align-items-center px-3 pb-3">
+                <a id="header-link" class="nounderline" href="/"><span><i class="fa fa-compass"></i>
+                        Compass</span></a>
+            </h3>
+
+
+            <div class="card">
+                <div class="card-body align-items-center">
+                    <h5 class="d-flex justify-content-center align-items-center px-5">
+                        <span>User List</span>
+                        <hr>
+                    </h5>
+
+
+
+                    <ul class="nav flex-column">
+                        <% for (let user of users) { %>
+                            <a id="<%= user.id %>" href="#" class="username-link nounderline ml-3"
+                                data-toggle="dropdown" aria-expanded="false" onclick="return displayTours(this.id);">
+                                <div class="card user-card">
+                                    <div class="card-body user-card-body">
+                                        <li class="nav-item mb-1">
+
+                                            <%= user.username %>
+
+                                        </li>
+                                    </div>
+                                </div>
+                            </a>
+
                             <% } %>
-                                <br>
-                                <hr>
-                                <% } %>
+                </div>
+                </ul>
+            </div>
+
 
 
         </div>
+    </nav>
+
+
+
+    <div id="map-box">
+        <div id="map"></div>
     </div>
 
-    <div class="container-flex">
-
-        <nav id="sidebarMenu">
-            <div class="position-sticky pt-3">
-                <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
-                    <span>Κατηγορίες Προϊόντων</span>
-                </h5>
-                <hr>
-
-                <ul class="nav flex-column">
-
-                    <li class="nav-item mb-1">
-                        <a href="#" class="dropdown-toggle nounderline ml-3" data-toggle="dropdown"
-                            aria-expanded="false">
-                            Φρούτα & Λαχανικά
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/categories/Φρούτα & Λαχανικά">Όλα τα
-                                    προϊόντα</a>
-                            </li>
-                            <li><a class="dropdown-item" href="/categories/Φρούτα">Φρούτα</a></li>
-                            <li><a class="dropdown-item" href="/categories/Λαχανικά">Λαχανικά</a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item my-1">
-                        <a href="#" class="dropdown-toggle nounderline ml-3" data-toggle="dropdown"
-                            aria-expanded="false">
-                            Γαλακτοκομικά & Είδη Ψυγείου
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/categories/Γαλακτοκομικά & Είδη Ψυγείου">Όλα τα
-                                    προϊόντα</a></li>
-                            <li><a class="dropdown-item" href="/categories/Αυγά">Αυγά</a></li>
-                            <li><a class="dropdown-item" href="/categories/Γάλατα">Γάλατα</a></li>
-                            <li><a class="dropdown-item" href="/categories/Γιαούρτια">Γιαούρτια</a>
-                            </li>
-                            <li><a class="dropdown-item" href="/categories/Κρέμες & Επιδόρπια Ψυγείου">Κρέμες &
-                                    Επιδόρπια
-                                    Ψυγείου</a></li>
-                            <li><a class="dropdown-item" href="/categories/Βούτυρα & Μαργαρίνες">Βούτυρα &
-                                    Μαργαρίνες</a>
-                            </li>
-                            <li><a class="dropdown-item" href="/categories/Χυμοί, Αναψυκτικά & Τσάι">Νερά, Χυμοί,
-                                    Αναψυκτικά
-                                    &
-                                    Τσάι</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item my-1">
-                        <a href="#" class="dropdown-toggle nounderline ml-3" data-toggle="dropdown"
-                            aria-expanded="false">
-                            Τυροκομικά
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/categories/Τυροκομικά">Όλα τα
-                                    προϊόντα</a></li>
-                            <li><a class="dropdown-item" href="/categories/Φέτα & Λευκά Τυριά">Φέτα
-                                    & Λευκά Τυριά</a></li>
-                            <li><a class="dropdown-item" href="/categories/Μαλακά Τυριά">Μαλακά
-                                    Τυριά</a></li>
-                            <li><a class="dropdown-item" href="/categories/Ημίσκληρα Τυριά">Ημίσκληρα Τυριά</a>
-                            </li>
-                            <li><a class="dropdown-item" href="/categories/Σκληρά Τυριά">Σκληρά
-                                    Τυριά</a></li>
-                            <li><a class="dropdown-item" href="/categories/Αλειφόμενα & Μίνι Τυριά">Αλειφόμενα &
-                                    Μίνι
-                                    Τυριά</a>
-                            </li>
-                            <li><a class="dropdown-item" href="/categories/Φυτικά Αναπληρώματα Τυριού">Φυτικά
-                                    Αναπληρώματα
-                                    Τυριού</a></li>
-                        </ul>
-                    </li>
-
-
-
-                </ul>
-
-
-
-            </div>
-        </nav>
+    <div id="user-info" class="mt-4">
+        Select a user from the list to display tour info.
     </div>
 
 
+
+
+
+
+    <script>
+        const allUsers = <%- JSON.stringify(users) %>
+    </script>
+
+
+
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.24.1/feather.min.js"
+        integrity="sha384-EbSscX4STvYAC/DxHse8z5gEDaNiKAIGW+EpfzYTfQrgIlHywXXrM9SUIZ0BlyfF"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"
+        integrity="sha384-i+dHPTzZw7YVZOx9lbH5l6lP74sLRtMtwN2XjVqjf3uAGAREAF4LMIUDTWEVs4LI"
+        crossorigin="anonymous"></script>
     <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
     <script src="https://maps.googleapis.com/maps/api/js?key=<%= googleMapsKey %>&callback=initMap&libraries=&v=weekly"
         async></script>
+
+    <script>
+
+            function initMap() {
+                let map;
+                map = new google.maps.Map(document.getElementById("map"), {
+                    center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                    zoom: 18
+                });
+
+            }
+
+        function displayTours(id) {
+            for (let user of allUsers) {
+
+                if (user._id == id) {
+                    if (user.measurements) {
+                        let map = new google.maps.Map(document.getElementById("map"), {
+                            center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                            zoom: 18
+                        });
+                        for (let measurement of user.measurements) {
+
+                            let date = measurement.createdAt.slice(0, 10);
+                            let time = measurement.createdAt.slice(11, 19);
+
+                            var marker = new google.maps.Marker({
+                                position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
+                                map,
+                                title: `${user.username}'s position on:\n${date}, ${time}`
+                            });
+
+                            google.maps.event.addListener(marker, 'click', function () {
+                                infoWindow.setContent(this.get('title'));
+                                infoWindow.open(map, this);
+                            });
+
+                        }
+                    }
+                    document.getElementById('user-info').innerHTML = `Currently showing tour info for user: ${user.username}`
+                    let userCards = document.getElementsByClassName('user-card');
+                    for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
+                    document.getElementById(id).children[0].style.backgroundColor = "rgb(255, 181, 112)";
+                }
+            }
+        }
+
+
+    </script>
+
 </body>
 
 </html>
