@@ -45,8 +45,8 @@ body {
   text-align: center;
 }
 
-.user-card:hover {
-  background-color:rgb(255, 181, 112);
+.user-card-body:hover {
+  background-color:rgb(255, 207, 161);
 }
 
 
@@ -133,11 +133,6 @@ body {
   color: #007bff;
 }
 
-.sidebar .nav-link:hover .feather,
-.sidebar .nav-link.active .feather {
-  color: inherit;
-}
-
 
 @media only screen and (max-width: 768px) {
 
@@ -178,7 +173,7 @@ body {
     
   }
 
-  .nav-item {
+  .card-body {
     font-size: 1.3rem;
   }
 

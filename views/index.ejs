@@ -42,8 +42,8 @@
 
                     <ul class="nav flex-column">
                         <% for (let user of users) { %>
-                            <a id="<%= user.id %>" href="#" class="username-link nounderline ml-3"
-                                data-toggle="dropdown" aria-expanded="false" onclick="return displayTours(this.id);">
+                            <a id="<%= user.id %>" href="#" class="username-link nounderline ml-3 py-1"
+                                aria-expanded="false" onclick="return displayUserTours(this.id);">
                                 <div class="card user-card">
                                     <div class="card-body user-card-body">
                                         <li class="nav-item mb-1">
@@ -59,6 +59,17 @@
                 </div>
                 </ul>
             </div>
+
+            <br>
+
+            <a id="all-tours-link" href="#" class="nounderline nav-link ml-3" aria-expanded="false"
+                onclick="return displayAllTours();">
+                <div id="all-tours-card" class="card text-white bg-success justify-content-center align-items-center">
+                    <div id="all-tours-card-body" class="card-body all-tours-card-body">
+                        Show All Tours
+                    </div>
+                </div>
+            </a>
 
 
 
@@ -82,6 +93,22 @@
 
     <script>
         const allUsers = <%- JSON.stringify(users) %>
+        const markerIcons = [
+            'http://maps.google.com/mapfiles/ms/icons/yellow.png',
+            'http://maps.google.com/mapfiles/ms/icons/yellow-dot.png',
+            'http://maps.google.com/mapfiles/ms/icons/blue.png',
+            'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+            'http://maps.google.com/mapfiles/ms/icons/green.png',
+            'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+            'http://maps.google.com/mapfiles/ms/icons/orange.png',
+            'http://maps.google.com/mapfiles/ms/icons/orange-dot.png',
+            'http://maps.google.com/mapfiles/ms/icons/pink.png',
+            'http://maps.google.com/mapfiles/ms/icons/pink-dot.png',
+            'http://maps.google.com/mapfiles/ms/icons/purple.png',
+            'http://maps.google.com/mapfiles/ms/icons/purple-dot.png',
+            'http://maps.google.com/mapfiles/ms/icons/red.png',
+            'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        ]
     </script>
 
 
@@ -101,24 +128,27 @@
 
     <script>
 
-            function initMap() {
-                let map;
-                map = new google.maps.Map(document.getElementById("map"), {
-                    center: { lat: 39.67310608025676, lng: 20.855661058932768 },
-                    zoom: 18
-                });
+        function initMap() {
+            let map;
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                zoom: 18
+            });
 
-            }
+        }
 
-        function displayTours(id) {
+        function displayUserTours(id) {
             for (let user of allUsers) {
+                let hasActiveTour = true;
 
                 if (user._id == id) {
-                    if (user.measurements) {
+                    if (user.measurements.length) {
                         let map = new google.maps.Map(document.getElementById("map"), {
-                            center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                            center: { lat: parseFloat(user.measurements[0].xHatNew[0]), lng: parseFloat(user.measurements[0].xHatNew[1]) },
                             zoom: 18
                         });
+                        var infoWindow = new google.maps.InfoWindow();
+
                         for (let measurement of user.measurements) {
 
                             let date = measurement.createdAt.slice(0, 10);
@@ -136,13 +166,56 @@
                             });
 
                         }
+
+                    } else {
+                        initMap();
+                        hasActiveTour = false;
                     }
-                    document.getElementById('user-info').innerHTML = `Currently showing tour info for user: ${user.username}`
+                    document.getElementById('user-info').innerHTML = `${hasActiveTour ? 'Currently showing tour info for user: ' : 'No active tours found for user: '} ${user.username}`
                     let userCards = document.getElementsByClassName('user-card');
                     for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
                     document.getElementById(id).children[0].style.backgroundColor = "rgb(255, 181, 112)";
+                    document.getElementById('all-tours-card').className = "card text-white bg-success justify-content-center align-items-center";
+
                 }
             }
+        }
+
+        function displayAllTours() {
+
+            let map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                zoom: 17
+            });
+            var infoWindow = new google.maps.InfoWindow();
+
+            for (let user of allUsers) {
+                let randomNumber = Math.floor(Math.random() * 14) + 1;
+
+                if (user.measurements) {
+                    for (let measurement of user.measurements) {
+
+                        let date = measurement.createdAt.slice(0, 10);
+                        let time = measurement.createdAt.slice(11, 19);
+
+                        var marker = new google.maps.Marker({
+                            position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
+                            title: `${user.username}'s position on:\n${date}, ${time}`,
+                            icon: markerIcons[randomNumber - 1]
+                        });
+                        google.maps.event.addListener(marker, 'click', function () {
+                            infoWindow.setContent(this.get('title'));
+                            infoWindow.open(map, this);
+                        });
+                        marker.setMap(map);
+                    }
+                }
+            }
+
+            document.getElementById('user-info').innerHTML = 'Currently showing tour info for all users'
+            let userCards = document.getElementsByClassName('user-card');
+            for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
+            document.getElementById('all-tours-card').className = "card text-white bg-secondary justify-content-center align-items-center";
         }
 
 
