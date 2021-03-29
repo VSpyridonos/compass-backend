@@ -115,7 +115,6 @@
 
 
 
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.24.1/feather.min.js"
         integrity="sha384-EbSscX4STvYAC/DxHse8z5gEDaNiKAIGW+EpfzYTfQrgIlHywXXrM9SUIZ0BlyfF"
         crossorigin="anonymous"></script>
@@ -123,8 +122,11 @@
         integrity="sha384-i+dHPTzZw7YVZOx9lbH5l6lP74sLRtMtwN2XjVqjf3uAGAREAF4LMIUDTWEVs4LI"
         crossorigin="anonymous"></script>
     <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=<%= googleMapsKey %>&callback=initMap&libraries=&v=weekly"
-        async></script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=<%= googleMapsKey %>&callback=displayAllTours&libraries=&v=weekly"
+        async>
+        </script>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
 
     <script>
 
@@ -134,6 +136,42 @@
                 center: { lat: 39.67310608025676, lng: 20.855661058932768 },
                 zoom: 18
             });
+        }
+
+        function displayAllTours() {
+            let map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 39.67310608025676, lng: 20.855661058932768 },
+                zoom: 17
+            });
+            var infoWindow = new google.maps.InfoWindow();
+
+            for (let user of allUsers) {
+                let randomNumber = Math.floor(Math.random() * 14) + 1;
+
+                if (user.measurements) {
+                    for (let measurement of user.measurements) {
+
+                        let date = measurement.createdAt.slice(0, 10);
+                        let time = measurement.createdAt.slice(11, 19);
+
+                        var marker = new google.maps.Marker({
+                            position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
+                            title: `${user.username}'s position on:\n${date}, ${time}`,
+                            icon: markerIcons[randomNumber - 1]
+                        });
+                        google.maps.event.addListener(marker, 'click', function () {
+                            infoWindow.setContent(this.get('title'));
+                            infoWindow.open(map, this);
+                        });
+                        marker.setMap(map);
+                    }
+                }
+            }
+
+            document.getElementById('user-info').innerHTML = 'Currently showing tour info for all users'
+            let userCards = document.getElementsByClassName('user-card');
+            for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
+            document.getElementById('all-tours-card').className = "card text-white bg-secondary justify-content-center align-items-center";
 
         }
 
@@ -177,45 +215,18 @@
                     document.getElementById(id).children[0].style.backgroundColor = "rgb(255, 181, 112)";
                     document.getElementById('all-tours-card').className = "card text-white bg-success justify-content-center align-items-center";
 
+                    let theUser;
+                    $.ajax({
+                        method: "GET",
+                        url: `http://localhost:3000/${user._id}`
+                    })
+                        .done(function (msg) {
+                            console.log(msg);
+                            // alert("Data Saved: " + msg);
+                        });
+
                 }
             }
-        }
-
-        function displayAllTours() {
-
-            let map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 39.67310608025676, lng: 20.855661058932768 },
-                zoom: 17
-            });
-            var infoWindow = new google.maps.InfoWindow();
-
-            for (let user of allUsers) {
-                let randomNumber = Math.floor(Math.random() * 14) + 1;
-
-                if (user.measurements) {
-                    for (let measurement of user.measurements) {
-
-                        let date = measurement.createdAt.slice(0, 10);
-                        let time = measurement.createdAt.slice(11, 19);
-
-                        var marker = new google.maps.Marker({
-                            position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
-                            title: `${user.username}'s position on:\n${date}, ${time}`,
-                            icon: markerIcons[randomNumber - 1]
-                        });
-                        google.maps.event.addListener(marker, 'click', function () {
-                            infoWindow.setContent(this.get('title'));
-                            infoWindow.open(map, this);
-                        });
-                        marker.setMap(map);
-                    }
-                }
-            }
-
-            document.getElementById('user-info').innerHTML = 'Currently showing tour info for all users'
-            let userCards = document.getElementsByClassName('user-card');
-            for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
-            document.getElementById('all-tours-card').className = "card text-white bg-secondary justify-content-center align-items-center";
         }
 
 
