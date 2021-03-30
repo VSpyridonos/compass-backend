@@ -268,7 +268,7 @@ app.get('/home', (req, res) => {
     res.render('home');
 });
 
-app.get('/users', async (req, res) => {
+app.get('/users/all-users', async (req, res) => {
     const users = await User.find({}).populate({
         path: 'measurements',
         populate: {
@@ -279,7 +279,7 @@ app.get('/users', async (req, res) => {
     res.json(users);
 });
 
-app.get('/:id', async (req, res) => {
+app.get('/users/:id', async (req, res) => {
     const user = await User.findById(req.params.id).populate({
         path: 'measurements',
         populate: {
