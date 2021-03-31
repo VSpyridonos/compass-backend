@@ -85,6 +85,15 @@
         <div id="map"></div>
     </div>
 
+    <div id="disable-data-refreshing" class="form-check">
+        <input type="checkbox" class="form-check-input" id="disable-data-refreshing-checkbox">
+        <label class="form-check-label" for="data-refreshing-checkbox">Disable data refreshing</label>
+    </div>
+    <div id="display-older-tours" class="form-check">
+        <input type="checkbox" class="form-check-input" id="display-older-tours-checkbox">
+        <label class="form-check-label" for="display-older-tours-checkbox">Display older tours</label>
+    </div>
+
     <div id="user-info" class="mt-4">
         Select a user from the list to display tour info.
     </div>
@@ -158,7 +167,7 @@
                         for (let user of users) {
                             let randomNumber = Math.floor(Math.random() * 14) + 1;
 
-                            if (user.measurements) {
+                            if (user.measurements.length) {
                                 for (let measurement of user.measurements) {
 
                                     let date = measurement.createdAt.slice(0, 10);
@@ -183,7 +192,11 @@
                         for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
                         document.getElementById('all-tours-card').className = "card text-white bg-secondary justify-content-center align-items-center";
                     })
-                await new Promise(r => timeouts.push(setTimeout(r, 10000)));
+
+                const cbData = document.getElementById('disable-data-refreshing-checkbox');
+                if (cbData.checked) break;
+
+                await new Promise(r => timeouts.push(setTimeout(r, 1000)));
 
                 for (var i = 0; i < timeouts.length; i++) {
                     timeouts.pop();
@@ -227,24 +240,33 @@
                                     infoWindow.open(map, this);
                                 });
 
-                            }
 
+
+                            }
+                            const cbTours = document.getElementById('display-older-tours-checkbox');
+                            if (cbTours.checked) {
+                                console.log('CONFIRMED');
+                            }
                         } else {
-                            
+
                             let map;
                             map = new google.maps.Map(document.getElementById("map"), {
                                 center: { lat: 39.67310608025676, lng: 20.855661058932768 },
                                 zoom: 18
                             });
                             hasActiveTour = false;
-                        };
+                        }
                         document.getElementById('user-info').innerHTML = `${hasActiveTour ? 'Currently showing tour info for user: ' : 'No active tours found for user: '} ${user.username}`
                         let userCards = document.getElementsByClassName('user-card');
                         for (let card of userCards) card.style.backgroundColor = "#e3fdfd";
                         document.getElementById(id).children[0].style.backgroundColor = "rgb(255, 181, 112)";
                         document.getElementById('all-tours-card').className = "card text-white bg-success justify-content-center align-items-center";
-                    })
-                await new Promise(r => timeouts.push(setTimeout(r, 10000)));
+                    });
+
+                const cbData = document.getElementById('disable-data-refreshing-checkbox');
+                if (cbData.checked) break;
+
+                await new Promise(r => timeouts.push(setTimeout(r, 1000)));
 
                 for (var i = 0; i < timeouts.length; i++) {
                     timeouts.pop();
