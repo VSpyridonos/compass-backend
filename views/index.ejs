@@ -69,7 +69,7 @@
                   }return displayAllTours();">
                 <div id="all-tours-card" class="card text-white bg-success justify-content-center align-items-center">
                     <div id="all-tours-card-body" class="card-body all-tours-card-body">
-                        Show All Tours
+                        Display All Users' Tours
                     </div>
                 </div>
             </a>
@@ -85,10 +85,16 @@
         <div id="map"></div>
     </div>
 
+    <div id="display-original-data" class="form-check">
+        <input type="checkbox" class="form-check-input" id="display-original-data-checkbox">
+        <label class="form-check-label" for="display-original-data-checkbox">Display original data</label>
+    </div>
+
     <div id="disable-data-refreshing" class="form-check">
         <input type="checkbox" class="form-check-input" id="disable-data-refreshing-checkbox">
         <label class="form-check-label" for="data-refreshing-checkbox">Disable data refreshing</label>
     </div>
+
     <div id="display-older-tours" class="form-check">
         <input type="checkbox" class="form-check-input" id="display-older-tours-checkbox">
         <label class="form-check-label" for="display-older-tours-checkbox">Display older tours</label>
@@ -183,8 +189,23 @@
                                         infoWindow.open(map, this);
                                     });
                                     marker.setMap(map);
+
+                                    if (document.getElementById('display-original-data-checkbox').checked) {
+                                        var marker = new google.maps.Marker({
+                                            position: { lat: parseFloat(measurement.xHatOriginal[0]), lng: parseFloat(measurement.xHatOriginal[1]) },
+                                            title: `Original Data:\n${user.username}'s position on:\n${date}, ${time}`,
+                                            icon: markerIcons[randomNumber - 1]
+                                        });
+
+                                        google.maps.event.addListener(marker, 'click', function () {
+                                            infoWindow.setContent(this.get('title'));
+                                            infoWindow.open(map, this);
+                                        });
+                                        marker.setMap(map);
+                                    }
                                 }
                             }
+
                         }
 
                         document.getElementById('user-info').innerHTML = 'Currently showing tour info for all users'
@@ -196,7 +217,7 @@
                 const cbData = document.getElementById('disable-data-refreshing-checkbox');
                 if (cbData.checked) break;
 
-                await new Promise(r => timeouts.push(setTimeout(r, 1000)));
+                await new Promise(r => timeouts.push(setTimeout(r, 3000)));
 
                 for (var i = 0; i < timeouts.length; i++) {
                     timeouts.pop();
@@ -210,6 +231,18 @@
         async function displayUserTours(id) {
 
             while (true) {
+                let flag = true;
+
+                // Stops next refresh if user unchecks the checkbox
+                $("#disable-data-refreshing-checkbox").click(function () {
+                    console.log('clicked')
+                    for (var i = 0; i < timeouts.length; i++) {
+                        timeouts.pop();
+                    }
+                    flag = false;
+                });
+
+
                 let hasActiveTour = true;
                 $.ajax({
                     method: "GET",
@@ -218,6 +251,7 @@
                     .done(function (user) {
                         console.log(user);
                         if (user.measurements.length) {
+                            let randomNumber = Math.floor(Math.random() * 14) + 1;
                             let map = new google.maps.Map(document.getElementById("map"), {
                                 center: { lat: parseFloat(user.measurements[0].xHatNew[0]), lng: parseFloat(user.measurements[0].xHatNew[1]) },
                                 zoom: 18
@@ -240,13 +274,50 @@
                                     infoWindow.open(map, this);
                                 });
 
+                                if (document.getElementById('display-original-data-checkbox').checked) {
+                                    var marker = new google.maps.Marker({
+                                        position: { lat: parseFloat(measurement.xHatOriginal[0]), lng: parseFloat(measurement.xHatOriginal[1]) },
+                                        map,
+                                        title: `Original Data:\n${user.username}'s position on:\n${date}, ${time}`,
+                                        icon: markerIcons[randomNumber - 1]
+                                    });
+
+                                    google.maps.event.addListener(marker, 'click', function () {
+                                        infoWindow.setContent(this.get('title'));
+                                        infoWindow.open(map, this);
+                                    });
+                                }
+
 
 
                             }
-                            const cbTours = document.getElementById('display-older-tours-checkbox');
-                            if (cbTours.checked) {
-                                console.log('CONFIRMED');
+
+                            if (document.getElementById('display-older-tours-checkbox').checked && user.olderMeasurements.length) {
+                                if (user.olderMeasurements.length) {
+                                    for (let measurements of user.olderMeasurements) {
+                                        randomNumber = Math.floor(Math.random() * 14) + 1;
+                                        for (let measurement of measurements) {
+                                            let date = measurement.createdAt.slice(0, 10);
+                                            let time = measurement.createdAt.slice(11, 19);
+
+                                            var marker = new google.maps.Marker({
+                                                position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
+                                                map,
+                                                title: `Older measurement:\n${user.username}'s position on:\n${date}, ${time}`,
+                                                icon: markerIcons[randomNumber - 1]
+                                            });
+
+                                            google.maps.event.addListener(marker, 'click', function () {
+                                                infoWindow.setContent(this.get('title'));
+                                                infoWindow.open(map, this);
+                                            });
+                                        }
+                                    }
+                                }
                             }
+
+                        } else if (document.getElementById('display-older-tours-checkbox').checked && user.olderMeasurements.length) {
+                            let randomNumber = Math.floor(Math.random() * 14) + 1;
                         } else {
 
                             let map;
@@ -266,17 +337,19 @@
                 const cbData = document.getElementById('disable-data-refreshing-checkbox');
                 if (cbData.checked) break;
 
-                await new Promise(r => timeouts.push(setTimeout(r, 1000)));
+                await new Promise(r => timeouts.push(setTimeout(r, 3000)));
 
                 for (var i = 0; i < timeouts.length; i++) {
                     timeouts.pop();
                 }
                 console.log(timeouts)
+                if (!flag) return
             }
         }
 
 
     </script>
+
 
 </body>
 

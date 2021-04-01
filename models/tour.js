@@ -6,12 +6,10 @@ const TourSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    points: [{
+    measurements: [{
         type: Schema.Types.ObjectId,
-        ref: 'Point'
-    }],
-
-    date: Date
+        ref: 'Measurement'
+    }]
 });
 
 module.exports = mongoose.model('Tour', TourSchema);

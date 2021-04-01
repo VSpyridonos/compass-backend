@@ -61,8 +61,12 @@ body {
   font-size: 1.2rem;
 }
 
+#display-original-data{
+  margin-left: 10rem;
+  font-size: 1.2rem;
+}
+
 #disable-data-refreshing {
-  display: inline-block;
   margin-left: 10rem;
   font-size: 1.2rem;
 }
@@ -75,7 +79,6 @@ body {
 #map {
   width: 100%;
   height: 700px;
-  
 }
 
 .feather {
@@ -168,6 +171,18 @@ body {
     padding-left: 0px;
     float: left;
     width: 100vw;
+  }
+
+  #display-original-data{
+    display: inline-block
+  }
+
+  #disable-data-refreshing{
+    display: inline-block
+  }
+
+  #display-older-tours{
+    display: inline-block
   }
 
   #user-info {

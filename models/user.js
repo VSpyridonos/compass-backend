@@ -22,7 +22,11 @@ const UserSchema = new Schema({
     olderMeasurements: [[{
         type: Schema.Types.ObjectId,
         ref: 'Measurement'
-    }]]
+    }]],
+    olderTours: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Tour'
+    }]
 });
 
 module.exports = mongoose.model('User', UserSchema);

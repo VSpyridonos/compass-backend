@@ -280,12 +280,28 @@ app.get('/users/all-users', async (req, res) => {
 });
 
 app.get('/users/:id', async (req, res) => {
-    const user = await User.findById(req.params.id).populate({
+
+    const user = await User.findById(req.params.id);
+
+    // Populate measurements array
+    await user.populate({
         path: 'measurements',
         populate: {
             path: 'measurement'
         }
-    });
+    }).execPopulate();;
+
+    const numberOfOlderMeasurements = user.olderMeasurements.length;
+
+    // Populate all olderMeasurements arrays
+    for (let i = 0; i < numberOfOlderMeasurements; i++) {
+        await user.populate({
+            path: `olderMeasurements.${i}`,
+            populate: {
+                path: '_id'
+            }
+        }).execPopulate();
+    }
 
     res.json(user);
 });
