@@ -22,6 +22,8 @@ background-size: contain;
 body {
   font-size: .875rem;
   overflow: scroll;
+  overflow-x: hidden;
+  overflow-y: hidden;
 }
 
 #header-link {
@@ -61,7 +63,8 @@ body {
   font-size: 1.2rem;
 }
 
-#display-original-data{
+#display-original-data {
+  margin-top: 10px;
   margin-left: 10rem;
   font-size: 1.2rem;
 }
@@ -149,6 +152,10 @@ body {
 
 
 @media only screen and (max-width: 768px) {
+
+  body {
+    overflow-y: visible;
+  }
 
   #map-box {
     border: none;

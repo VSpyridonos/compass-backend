@@ -181,7 +181,7 @@
 
                                     var marker = new google.maps.Marker({
                                         position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
-                                        title: `${user.username}'s position on:\n${date}, ${time}`,
+                                        title: `${user.username}'s position on:\n${date}, ${time}\n\nlat: ${parseFloat(measurement.xHatNew[0])}\nlng: ${parseFloat(measurement.xHatNew[1])}`,
                                         icon: markerIcons[randomNumber - 1]
                                     });
                                     google.maps.event.addListener(marker, 'click', function () {
@@ -193,7 +193,7 @@
                                     if (document.getElementById('display-original-data-checkbox').checked) {
                                         var marker = new google.maps.Marker({
                                             position: { lat: parseFloat(measurement.xHatOriginal[0]), lng: parseFloat(measurement.xHatOriginal[1]) },
-                                            title: `Original Data:\n${user.username}'s position on:\n${date}, ${time}`,
+                                            title: `Original Data:\n${user.username}'s position on:\n${date}, ${time}\n\nlat: ${parseFloat(measurement.xHatOriginal[0])}\nlng: ${parseFloat(measurement.xHatOriginal[1])}`,
                                             icon: markerIcons[randomNumber - 1]
                                         });
 
@@ -217,7 +217,7 @@
                 const cbData = document.getElementById('disable-data-refreshing-checkbox');
                 if (cbData.checked) break;
 
-                await new Promise(r => timeouts.push(setTimeout(r, 3000)));
+                await new Promise(r => timeouts.push(setTimeout(r, 10000)));
 
                 for (var i = 0; i < timeouts.length; i++) {
                     timeouts.pop();
@@ -266,7 +266,7 @@
                                 var marker = new google.maps.Marker({
                                     position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
                                     map,
-                                    title: `${user.username}'s position on:\n${date}, ${time}`
+                                    title: `${user.username}'s position on:\n${date}, ${time}\n\nlat: ${parseFloat(measurement.xHatNew[0])}\nlng: ${parseFloat(measurement.xHatNew[1])}`
                                 });
 
                                 google.maps.event.addListener(marker, 'click', function () {
@@ -278,7 +278,7 @@
                                     var marker = new google.maps.Marker({
                                         position: { lat: parseFloat(measurement.xHatOriginal[0]), lng: parseFloat(measurement.xHatOriginal[1]) },
                                         map,
-                                        title: `Original Data:\n${user.username}'s position on:\n${date}, ${time}`,
+                                        title: `Original Data:\n${user.username}'s position on:\n${date}, ${time}\n\nlat: ${parseFloat(measurement.xHatOriginal[0])}\nlng: ${parseFloat(measurement.xHatOriginal[1])}`,
                                         icon: markerIcons[randomNumber - 1]
                                     });
 
@@ -303,7 +303,7 @@
                                             var marker = new google.maps.Marker({
                                                 position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
                                                 map,
-                                                title: `Older measurement:\n${user.username}'s position on:\n${date}, ${time}`,
+                                                title: `Older measurement:\n${user.username}'s position on:\n${date}, ${time}\n\nlat: ${parseFloat(measurement.xHatNew[0])}\nlng: ${parseFloat(measurement.xHatNew[1])}`,
                                                 icon: markerIcons[randomNumber - 1]
                                             });
 
@@ -337,7 +337,7 @@
                 const cbData = document.getElementById('disable-data-refreshing-checkbox');
                 if (cbData.checked) break;
 
-                await new Promise(r => timeouts.push(setTimeout(r, 3000)));
+                await new Promise(r => timeouts.push(setTimeout(r, 10000)));
 
                 for (var i = 0; i < timeouts.length; i++) {
                     timeouts.pop();
