@@ -1,11 +1,7 @@
 const User = require('../models/user');
-const Input = require('../models/input');
-const Tour = require('../models/tour');
-const Point = require('../models/point');
 const Measurement = require('../models/measurement');
 
 const mongoose = require('mongoose');
-const measurement = require('../models/measurement');
 
 require('dotenv').config();
 

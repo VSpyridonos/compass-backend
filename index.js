@@ -5,7 +5,7 @@ const ejsMate = require('ejs-mate');
 const amqp = require('amqplib');
 const matrixMultiplication = require('matrix-multiplication');
 let mul = matrixMultiplication()(2);
-var linearAlgebra = require('linear-algebra')(),     // initialise it
+var linearAlgebra = require('linear-algebra')(),
     Vector = linearAlgebra.Vector,
     Matrix = linearAlgebra.Matrix;
 
@@ -13,8 +13,6 @@ const math = require('mathjs');
 
 const User = require('./models/user');
 const Input = require('./models/input');
-const Tour = require('./models/tour');
-const Point = require('./models/point');
 const Measurement = require('./models/measurement');
 
 
@@ -264,9 +262,6 @@ async function kalmanFilter(measurement) {
     return
 }
 
-app.get('/home', (req, res) => {
-    res.render('home');
-});
 
 app.get('/users/all-users', async (req, res) => {
     const users = await User.find({}).populate({
@@ -317,57 +312,6 @@ app.get('/', async (req, res) => {
 
     res.render('index', { users, googleMapsKey })
 })
-
-app.get('/tours', async (req, res) => {
-    await User.deleteMany({});
-    await Point.deleteMany({});
-    await Tour.deleteMany({});
-
-    const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
-    const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
-    const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com' });
-    const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com' });
-    const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com' });
-    const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com' });
-    const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com' });
-
-    const point1 = new Point({ user: user1.id, geometry: { type: 'Point', coordinates: [51.092358, 40.612349] } });
-    const point2 = new Point({ user: user2.id, geometry: { type: 'Point', coordinates: [63.123551, 23.613236] } });
-    const point3 = new Point({ user: user3.id, geometry: { type: 'Point', coordinates: [25.521351, 17.573957] } });
-
-    await point1.save();
-    await point2.save();
-    await point3.save();
-
-    const tour1 = new Tour({ user: user1.id });
-    const tour2 = new Tour({ user: user2.id });
-    const tour3 = new Tour({ user: user3.id });
-
-    tour1.points.push(point1);
-    tour2.points.push(point2);
-    tour3.points.push(point3);
-
-    await tour1.save();
-    await tour2.save();
-    await tour3.save();
-
-    user1.currentTour = tour1.id;
-    user2.currentTour = tour2.id;
-    user3.currentTour = tour3.id;
-
-    await user1.save();
-    await user2.save();
-    await user3.save();
-    await user4.save();
-    await user5.save();
-    await user6.save();
-    await user7.save();
-
-    const users = await User.find()
-    const tours = await Tour.find();
-    res.render('tours', { users, tours });
-});
-
 
 
 const port = 3000;

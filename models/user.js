@@ -5,14 +5,6 @@ const UserSchema = new Schema({
     username: String,
     name: String,
     email: String,
-    currentTour: {
-        type: Schema.Types.ObjectId,
-        ref: 'Tour'
-    },
-    previousTours: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Tour'
-    }],
 
     // Current measurements array. When user presses "STOP" on mobile app, move current measurement array into olderMeasurements
     measurements: [{
@@ -22,11 +14,7 @@ const UserSchema = new Schema({
     olderMeasurements: [[{
         type: Schema.Types.ObjectId,
         ref: 'Measurement'
-    }]],
-    olderTours: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Tour'
-    }]
+    }]]
 });
 
 module.exports = mongoose.model('User', UserSchema);
