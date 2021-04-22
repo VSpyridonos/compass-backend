@@ -15,21 +15,17 @@ const User = require('./models/user');
 const Input = require('./models/input');
 const Measurement = require('./models/measurement');
 
-
 require('dotenv').config();
 
 const googleMapsKey = process.env.GOOGLE_MAPS_API_KEY;
-
 const app = express();
 
 app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 mongoose.connect('mongodb://localhost:27017/dockerApp', {
     useNewUrlParser: true,
@@ -40,18 +36,30 @@ const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => {
     console.log('Database connected');
-})
+});
+
+var connection, channel, function_queue;
+var queue = "Location Data";
+
+async function initStuff() {
+    await createConnection();
+    await doStuff();
+}
+
+initStuff();
+
+
+async function createConnection() {
+
+    connection = await amqp.connect("amqp://localhost:5672");
+    channel = await connection.createChannel();
+    function_queue = await channel.assertQueue(queue, { durable: true });
+}
 
 // Consumer
 async function connectRabbit() {
     try {
-        const connection = await amqp.connect("amqp://localhost:5672");
-        const channel = await connection.createChannel();
-        var queue = "kalman"
-        const function_queue = await channel.assertQueue(queue, { durable: false });
-
         console.log(" [*] Waiting for messages in %s. To exit press CTRL+C", queue);
-
         channel.consume(queue, function (message) {
             const input = JSON.parse(message.content.toString());
             console.log("Received %s", message.content.toString());
@@ -64,92 +72,179 @@ async function connectRabbit() {
     }
 }
 
-
-// Kalman-Filter
-app.get('/kalman-filter', async (req, res) => {
-    await User.deleteMany({});
-    await Input.deleteMany({});
-    await Measurement.deleteMany({});
-
-    const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
-    const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
-    const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com' });
-    const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com' });
-    const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com' });
-    const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com' });
-    const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com' });
-
-    await user1.save();
-    await user2.save();
-    await user3.save();
-    await user4.save();
-    await user5.save();
-    await user6.save();
-    await user7.save();
+async function doStuff() {
 
 
-    // Make it unique for each user
-    let measurementCounter = 0;
-    let measurement;
-    var input = connectRabbit();
+    var isQueueEmpty = await channel.get(queue);
+    if (isQueueEmpty != false) {
 
-    // ************** RabbitMQ communication cycle ******************
-    let user;
-    while (measurementCounter < 2) {
+        channel.consume(queue, async function (message) {
+            const input = JSON.parse(message.content.toString());
+            // let user;
+            console.log("Received %s", message.content.toString());
 
-
-        // Receive measurement from mobile app and create measurement object using the received values, increment measurementCounter
-
-        if (measurementCounter === 0) {
-            //measurement = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true, dt: 1 });
-
-            //input is in JSON format probably, so the values we want are stored in this way.
-            measurement = new Measurement({ user: input[user][id], x: input[xpos], y: input[ypos], speed: input[speed] });
-            measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
-            measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
-
-
-            // Find current user (not needed after authentication) and access their measurement's details
-            user = await User.findById(user1.id).populate({
-                path: 'measurements',
-                populate: {
-                    path: 'measurement'
-                }
-            });
-            // Add this measurement to user's measurements
-            await kalmanFilter(measurement);
-            user.measurements.push(measurement);
-            user.save();
-
-        }
-        // If measurement is not the first one, xHatOriginal = previous measurement's xHatNew
-        else {
-
-            measurement = new Measurement({ user: user.id, x: 51.126, y: 25.167, speed: 4.4, isFirst: false, dt: 2 });
-            measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
-            measurement.xHat = user.measurements[measurementCounter - 1].xHatNew;
-
-            await kalmanFilter(measurement);
-            // Add this measurement to user's measurements
-            user.measurements.push(measurement);
-            user.save();
-        }
-        measurementCounter++;
-        await measurement.save();
+            if (input.userID === 0) {
+                let user = await User.find({ 'username': 'vanessarocks' }, function (err, docs) {
+                    let theUser = docs[0];
+                    let measurement = new Measurement({
+                        user: theUser._id,
+                        x: input.longitude,
+                        y: input.latitude,
+                        speed: input.speed,
+                        idKey: input.idKey
+                    });
+                    console.log("The Measurement that received")
 
 
-        // Call kalman-filter with measurement
+                    measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
+                    measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
+
+                    kalmanFilter(measurement);
+
+
+                    theUser.measurements.push(measurement);
+                    theUser.save();
+                    measurement.save();
+                });
+
+            }
+
+
+            return input;
+
+        }, { noAck: true });
 
     }
 
 
-    // **************************************************************
+    //do not erase that
+    // while (true) {
 
-    // Find all measurements
-    const results = await Measurement.find({});
+    //     var isQueueEmpty = await channel.get(queue);
+    //     while (isQueueEmpty != false) {
 
-    res.render('kalman-filter', { results });
-})
+    // let user;
+    // let userId;
+    // let input = await connectRabbit();
+    // console.log(input)
+
+    // if (input[userID] === 0) {
+    //     user = await User.find({ username: 'vanessarocks' });
+    //     userId = user._id;
+    //     console.log(user)
+    // }
+
+    // let measurement = new Measurement({
+    //     user: userId,
+    //     x: input[longitude],
+    //     y: input[latitude],
+    //     speed: input[speed],
+    //     idKey: input[userId]
+    // });
+    // console.log("The Measurement that received")
+
+    // //console.log(measurement)
+    // // measurement = new Measurement({ user: input[user][id], x: input[xpos], y: input[ypos], speed: input[speed] });
+    // measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
+    // measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
+
+    // kalmanFilter(measurement);
+    // // Add this measurement to user's measurements
+    // user.measurements.push(measurement);
+    // user.save();
+    // measurement.save();
+    //     }
+}
+
+
+// Kalman-Filter
+// app.get('/kalman-filter', async (req, res) => {
+//     await User.deleteMany({});
+//     await Input.deleteMany({});
+//     await Measurement.deleteMany({});
+
+//     const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
+//     const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
+//     const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com' });
+//     const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com' });
+//     const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com' });
+//     const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com' });
+//     const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com' });
+
+//     await user1.save();
+//     await user2.save();
+//     await user3.save();
+//     await user4.save();
+//     await user5.save();
+//     await user6.save();
+//     await user7.save();
+
+
+//     // Make it unique for each user
+//     let measurementCounter = 0;
+//     let measurement;
+//     var input = connectRabbit();
+
+//     // ************** RabbitMQ communication cycle ******************
+//     let user;
+//     while (measurementCounter < 2) {
+
+
+//         // Receive measurement from mobile app and create measurement object using the received values, increment measurementCounter
+
+//         if (measurementCounter === 0) {
+//             //measurement = new Measurement({ user: user1.id, x: 50.124, y: 24.156, speed: 4.3, isFirst: true, dt: 1 });
+
+//             //input is in JSON format probably, so the values we want are stored in this way.
+//             measurement = new Measurement({ user: input[user][id], longitude: input[longtitude], latitude: input[latitude], speed: input[speed], accuracy: input[accuracy], date: input[date], time: input[time], idkey:input[userID]});
+//             console.log("The Measurement that received")
+//             //console.log(measurement)
+//             // measurement = new Measurement({ user: input[user][id], x: input[xpos], y: input[ypos], speed: input[speed] });
+//             measurement.xHatOriginal = [[measurement.longitude], [measurement.latitude], [measurement.speed]];
+//             measurement.xHat = [[measurement.longitude], [measurement.latitude], [measurement.speed]];
+
+
+//             // Find current user (not needed after authentication) and access their measurement's details
+//             user = await User.findById(user1.id).populate({
+//                 path: 'measurements',
+//                 populate: {
+//                     path: 'measurement'
+//                 }
+//             });
+//             // Add this measurement to user's measurements
+//             await kalmanFilter(measurement);
+//             user.measurements.push(measurement);
+//             user.save();
+
+//         }
+//         // If measurement is not the first one, xHatOriginal = previous measurement's xHatNew
+//         else {
+
+//             measurement = new Measurement({ user: user.id, x: 51.126, y: 25.167, speed: 4.4, isFirst: false, dt: 2 });
+//             measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
+//             measurement.xHat = user.measurements[measurementCounter - 1].xHatNew;
+
+//             await kalmanFilter(measurement);
+//             // Add this measurement to user's measurements
+//             user.measurements.push(measurement);
+//             user.save();
+//         }
+//         measurementCounter++;
+//         await measurement.save();
+
+
+//         // Call kalman-filter with measurement
+
+//     }
+
+
+//     // **************************************************************
+
+//     // Find all measurements
+//     const results = await Measurement.find({});
+
+//     res.render('kalman-filter', { results });
+// })
 
 
 async function kalmanFilter(measurement) {
@@ -262,7 +357,6 @@ async function kalmanFilter(measurement) {
     return
 }
 
-
 app.get('/users/all-users', async (req, res) => {
     const users = await User.find({}).populate({
         path: 'measurements',
@@ -312,7 +406,6 @@ app.get('/', async (req, res) => {
 
     res.render('index', { users, googleMapsKey })
 })
-
 
 const port = 3000;
 

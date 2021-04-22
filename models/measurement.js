@@ -13,6 +13,7 @@ const MeasurementSchema = new Schema({
     xHatOriginal: [[Number]],
     xHat: [[Number]],
     xHatNew: [[Number]],
+    idKey: Number
 }, {
     timestamps: true
 });
