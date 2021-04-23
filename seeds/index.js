@@ -21,13 +21,13 @@ const seedDB = async () => {
     await Measurement.deleteMany({});
 
     // User seeds
-    const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com' });
-    const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com' });
-    const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com' });
-    const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com' });
-    const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com' });
-    const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com' });
-    const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com' });
+    const user1 = new User({ username: 'giannakis5', name: 'giannis', email: 'giannis@gmail.com', idKey: 0 });
+    const user2 = new User({ username: 'takis13', name: 'takis', email: 'takis@gmail.com', idKey: 1 });
+    const user3 = new User({ username: 'patatakis28', name: 'patatakis', email: 'patatakis@gmail.com', idKey: 2 });
+    const user4 = new User({ username: 'aris123', name: 'aris', email: 'arispap@gmail.com', idKey: 3 });
+    const user5 = new User({ username: 'georgia22', name: 'georgia', email: 'georgia2@gmail.com', idKey: 4 });
+    const user6 = new User({ username: 'vasilis124', name: 'vasilis', email: 'vasilis21@gmail.com', idKey: 5 });
+    const user7 = new User({ username: 'vanessarocks', name: 'vanessa', email: 'vanessarocks@gmail.com', idKey: 6 });
 
     await user1.save();
     await user2.save();
@@ -164,6 +164,8 @@ const seedDB = async () => {
 
     await user1.olderMeasurements.push([measurement11, measurement21, measurement31, measurement41, measurement51, measurement61, measurement71, measurement81, measurement91, measurement101]);
     await user1.save();
+
+    console.log(user1, user2, user3);
 }
 
 seedDB();

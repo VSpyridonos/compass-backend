@@ -176,8 +176,8 @@
                             if (user.measurements.length) {
                                 for (let measurement of user.measurements) {
 
-                                    let date = measurement.createdAt.slice(0, 10);
-                                    let time = measurement.createdAt.slice(11, 19);
+                                    let date = measurement.date.slice(0, 10);
+                                    let time = measurement.date.slice(11, 19);
 
                                     var marker = new google.maps.Marker({
                                         position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
@@ -260,8 +260,8 @@
 
                             for (let measurement of user.measurements) {
 
-                                let date = measurement.createdAt.slice(0, 10);
-                                let time = measurement.createdAt.slice(11, 19);
+                                let date = measurement.date.slice(0, 10);
+                                let time = measurement.date.slice(11, 19);
 
                                 var marker = new google.maps.Marker({
                                     position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },
@@ -297,8 +297,8 @@
                                     for (let measurements of user.olderMeasurements) {
                                         randomNumber = Math.floor(Math.random() * 14) + 1;
                                         for (let measurement of measurements) {
-                                            let date = measurement.createdAt.slice(0, 10);
-                                            let time = measurement.createdAt.slice(11, 19);
+                                            let date = measurement.date.slice(0, 10);
+                                            let time = measurement.date.slice(11, 19);
 
                                             var marker = new google.maps.Marker({
                                                 position: { lat: parseFloat(measurement.xHatNew[0]), lng: parseFloat(measurement.xHatNew[1]) },

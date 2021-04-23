@@ -14,7 +14,8 @@ const UserSchema = new Schema({
     olderMeasurements: [[{
         type: Schema.Types.ObjectId,
         ref: 'Measurement'
-    }]]
+    }]],
+    idKey: Number
 });
 
 module.exports = mongoose.model('User', UserSchema);
