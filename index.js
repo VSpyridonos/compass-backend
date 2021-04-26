@@ -86,36 +86,36 @@ async function watchQueue() {
             // let user;
             console.log("Received %s", message.content.toString());
 
-            if (input.userID === 6) {
-                let user = await User.find({ idKey: input.userID }, function (err, docs) {
-                    console.log(docs)
-                    let theUser = docs[0];
-                    let transformedDate = new Date(input.time);
-                    let measurement = new Measurement({
-                        user: theUser._id,
-                        x: input.longitude,
-                        y: input.latitude,
-                        speed: input.speed,
-                        idKey: input.userID,
-                        date: transformedDate,
-                        accurracy: input.accurracy
-                    });
 
-
-                    measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
-                    measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
-
-                    kalmanFilter(measurement);
-
-
-                    theUser.measurements.push(measurement);
-                    theUser.save();
-                    measurement.save();
-
-                    console.log('\n\nThe received measurement has been saved.')
+            let user = await User.find({ idKey: input.userID }, function (err, docs) {
+                console.log(docs)
+                let theUser = docs[0];
+                let transformedDate = new Date(input.time);
+                let measurement = new Measurement({
+                    user: theUser._id,
+                    x: input.longitude,
+                    y: input.latitude,
+                    speed: input.speed,
+                    idKey: input.userID,
+                    date: transformedDate,
+                    accurracy: input.accurracy
                 });
 
-            }
+
+                measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
+                measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
+
+                kalmanFilter(measurement);
+
+
+                theUser.measurements.push(measurement);
+                theUser.save();
+                measurement.save();
+
+                console.log('\n\nThe received measurement has been saved.')
+            });
+
+
 
 
             return input;
