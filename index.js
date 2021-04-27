@@ -2,8 +2,10 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const ejsMate = require('ejs-mate');
+// const ejsMate = require('ejs-mate');
+
 const amqp = require('amqplib');
+
 const matrixMultiplication = require('matrix-multiplication');
 let mul = matrixMultiplication()(2);
 var linearAlgebra = require('linear-algebra')(),
@@ -21,42 +23,73 @@ require('dotenv').config();
 const googleMapsKey = process.env.GOOGLE_MAPS_API_KEY;
 const app = express();
 
-app.engine('ejs', ejsMate);
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+// app.engine('ejs', ejsMate);
+// app.set('view engine', 'ejs');
+// app.set('views', path.join(__dirname, 'views'));
 
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-mongoose.connect('mongodb://localhost:27017/dockerApp', {
+mongoose.connect('mongodb://mongo:27017/compass', {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true
 });
-
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', () => {
     console.log('Database connected');
 });
 
-var connection, channel, function_queue;
 var queue = "Location Data";
-
-async function initialize() {
-    await createConnection();
-    await watchQueue();
-}
-
 initialize();
 
+async function initialize() {
+
+    var connectionChannel;
+    try {
+        connectionChannel = await createConnection();
+        // console.log("--------------------initStuff() after createConnection() -> connectionResult: ", connectionResult);
+    }
+    catch (connectionError) {
+        console.error(connectionError);
+    }
+    if (connectionChannel != undefined) {
+        console.log("Created RabbitMQ connection. Channel info: ", connectionChannel);
+        await watchQueue(connectionChannel);
+    }
+    else {
+        console.log("RabbitMQ is unavailable. Exiting with code 1.");
+        process.exit(1);
+    }
+}
 
 async function createConnection() {
 
-    connection = await amqp.connect("amqp://localhost:5672");
-    channel = await connection.createChannel();
-    function_queue = await channel.assertQueue(queue, { durable: true });
+    var connection, connectionChannel;
+    try {
+        connection = await amqp.connect('amqp://rabbitmq:5672');
+    }
+    catch (connectionError) {
+        console.error(connectionError);
+        throw connectionError;
+    }
+    // console.log("********************amqp.connect() -> connection: ", connection);
+    if (connection != undefined) {
+
+        try {
+            connectionChannel = await connection.createChannel();
+            // console.log("********************connectionChannel.createChannel() -> connectionChannel: ", connectionChannel);
+        }
+        catch (channelError) {
+            console.error(channelError);
+            throw channelError;
+        }
+        connectionChannel.assertQueue(queue, {durable: true});
+        // console.log("********************connectionChannel.assertQueue() -> connectionChannel: ", connectionChannel);
+    }
+    return connectionChannel;
 }
 
 // Consumer
@@ -75,8 +108,7 @@ async function connectRabbit() {
     }
 }
 
-async function watchQueue() {
-
+async function watchQueue(channel) {
 
     let isQueueEmpty = await channel.get(queue);
     if (isQueueEmpty != false) {
@@ -85,7 +117,6 @@ async function watchQueue() {
             const input = JSON.parse(message.content.toString());
             // let user;
             console.log("Received %s", message.content.toString());
-
 
             let user = await User.find({ idKey: input.userID }, function (err, docs) {
                 console.log(docs)
@@ -101,12 +132,10 @@ async function watchQueue() {
                     accurracy: input.accurracy
                 });
 
-
                 measurement.xHatOriginal = [[measurement.x], [measurement.y], [measurement.speed]];
                 measurement.xHat = [[measurement.x], [measurement.y], [measurement.speed]];
 
                 kalmanFilter(measurement);
-
 
                 theUser.measurements.push(measurement);
                 theUser.save();
@@ -115,19 +144,10 @@ async function watchQueue() {
                 console.log('\n\nThe received measurement has been saved.')
             });
 
-
-
-
             return input;
-
         }, { noAck: true });
-
     }
-
 }
-
-
-
 
 async function kalmanFilter(measurement) {
 
@@ -289,6 +309,6 @@ app.get('/', async (req, res) => {
     res.render('index', { users, googleMapsKey })
 })
 
-const port = 3000;
+const port = 5000;
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
